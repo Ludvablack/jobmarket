@@ -100,8 +100,8 @@
     $sql = "SELECT * FROM event where 1=1 ";
     $sql .= " AND control = 'Ready' ";
     $sql .= " AND start_event IS NOT NULL ";
-    $sql .= " AND start_event <> '0000-00-00 00:00:00' ";
-    $sql .= " AND (stop_event IS NULL OR stop_event = '0000-00-00 00:00:00') ";
+    $sql .= " AND start_event > '1970-01-01' ";
+    $sql .= " AND (stop_event IS NULL OR stop_event < '1970-01-01') ";
 
 
     $params = [];
