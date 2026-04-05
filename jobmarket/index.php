@@ -58,7 +58,7 @@
            )
         AND (
         start_event IS NULL
-        OR start_event = '0000-00-00 00:00:00'
+        OR start_event < '1970-01-01'
             )
              ";
 
