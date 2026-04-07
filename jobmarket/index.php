@@ -45,22 +45,22 @@
         // Deaktivace se provede pouze první den v měsíci
         if (date('j') == 1) {
             //  UPDATE: změnit control na Empty u všech vybraných řádků
-            $sql_update = "
-         UPDATE event
-         SET control = 'Empty'
-        WHERE control = 'Ready'
-        AND (
-        YEAR(begin_event) < YEAR(NOW())
+           $sql_update = "
+    UPDATE event
+    SET control = 'Empty'
+    WHERE 
+        control = 'False'
         OR (
-             YEAR(begin_event) = YEAR(NOW())
-             AND MONTH(begin_event) < MONTH(NOW())
-           )
-           )
-        AND (
-        start_event IS NULL
-        OR start_event < '1970-01-01'
+            control = 'Ready'
+            AND begin_event < NOW()
+            AND (
+                start_event IS NULL
+                OR start_event < '1970-01-01'
+                OR stop_event IS NULL
+                OR stop_event < '1970-01-01'
             )
-             ";
+        )
+";
 
             $result_update = $conn->query($sql_update);
 
