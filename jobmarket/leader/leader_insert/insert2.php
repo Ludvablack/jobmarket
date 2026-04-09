@@ -22,62 +22,85 @@ $job = $result->fetch_assoc();
 
 // 3) Zpracování formuláře
 $zprava = '';
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $begin_event = $_POST["begin_event"] ?? null;
     $hours = (float) ($_POST["hours"] ?? 0);
-
     $comment_leader = $_POST["comment_leader"] ?? '';
-    // pevně daná hodnota
-    $control = "Ready";
-    $salary = $job['price_hour'] * $hours;
 
-    $sqlInsert = "
-        INSERT INTO event 
-            (id_job, name_job, price_hour, begin_event, hours, salary,control, comment_job, comment_leader)
-        VALUES 
-            (?, ?, ?, ?, ?, ?, ?, ?,?)
-    ";
+    // --- KONTROLA ČASU ---
+    if (!$begin_event) {
+        $zprava = "Chyba: Nebyl zadán začátek práce.";
+    } else {
+        $begin = DateTime::createFromFormat('Y-m-d\TH:i', $begin_event);
 
-    $ins = $conn->prepare($sqlInsert);
-    $ins->bind_param(
-        "isdsdssss",
-        $job['id_job'],
-        $job['name_job'],
-        $job['price_hour'],
-        $begin_event,
-        $hours,
-        $salary,
-        $control,               // ← tady se vloží "Ready"
-        $job['comment_job'],
-        $comment_leader
-    );
-    if ($ins->execute()) {
-        $id_event = $ins->insert_id;
+        if (!$begin) {
+            $zprava = "Chyba: Neplatný formát data.";
+        } else {
+            $now = new DateTime("now");
 
-        // uložíme ID vložené práce do session
-        $_SESSION['vlozena_prace'] = [
-            'id_event' => $id_event,
-            'id_job' => $job['id_job'],
-            'name_job' => $job['name_job'],
-            'price_hour' => $job['price_hour'],
-            'begin_event' => $begin_event,
-            'hours' => $hours,
-            'salary' => $salary,
-            'comment_job' => $job['comment_job'],
-            'comment_leader' => $comment_leader
-        ];
-        unset($_SESSION['uzivatel_id']);
-        session_write_close();
-
-        // přesměrování na stránku s výsledkem
-        header("Location: insert3.php");
-        exit;
+            if ($begin < $now) {
+                $zprava = "Zakázku nelze zadat pozdě!";
+            }
+        }
     }
 
+    // Pokud existuje chyba, zastavíme zpracování
+    if ($zprava) {
+        // jen zobrazíme hlášku, nic se nevkládá
+    } else {
 
+        // pevně daná hodnota
+        $control = "Ready";
+        $salary = $job['price_hour'] * $hours;
+
+        $sqlInsert = "
+            INSERT INTO event 
+                (id_job, name_job, price_hour, begin_event, hours, salary, control, comment_job, comment_leader)
+            VALUES 
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ";
+
+        $ins = $conn->prepare($sqlInsert);
+        $ins->bind_param(
+            "isdsdssss",
+            $job['id_job'],
+            $job['name_job'],
+            $job['price_hour'],
+            $begin_event,
+            $hours,
+            $salary,
+            $control,
+            $job['comment_job'],
+            $comment_leader
+        );
+
+        if ($ins->execute()) {
+            $id_event = $ins->insert_id;
+
+            $_SESSION['vlozena_prace'] = [
+                'id_event' => $id_event,
+                'id_job' => $job['id_job'],
+                'name_job' => $job['name_job'],
+                'price_hour' => $job['price_hour'],
+                'begin_event' => $begin_event,
+                'hours' => $hours,
+                'salary' => $salary,
+                'comment_job' => $job['comment_job'],
+                'comment_leader' => $comment_leader
+            ];
+
+            unset($_SESSION['uzivatel_id']);
+            session_write_close();
+
+            header("Location: insert3.php");
+            exit;
+        }
+    }
 }
+
+
+
 
 $conn->close();
 ?>
