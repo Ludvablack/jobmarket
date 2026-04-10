@@ -111,7 +111,7 @@ session_start(); // Spustíme session
         echo "<br><br>";
 
         echo "<table border='1'>";
-        echo "<tr><th>Vybrat</th><th>ID</th><th>Název</th><th>Sazba</th><th>Komentář</th></tr>";
+        echo "<tr><th>Vybrat</th><th>ID</th><th>Název</th><th>Hodinová sazba</th><th>Komentář</th></tr>";
 
         while ($row = $result->fetch_assoc()) {
             echo "<tr>";
